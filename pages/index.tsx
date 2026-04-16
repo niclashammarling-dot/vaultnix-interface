@@ -359,6 +359,7 @@ export default function VaultNix() {
   // Query state
   const [queryText, setQueryText] = useState('')
   const [queryAnswer, setQueryAnswer] = useState('')
+  const [queryError, setQueryError] = useState('')
   const [querying, setQuerying] = useState(false)
 
   // Domain articles list
@@ -460,15 +461,18 @@ export default function VaultNix() {
     if (!queryText.trim()) return
     setQuerying(true)
     setQueryAnswer('')
+    setQueryError('')
     try {
       const res = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: queryText }),
       })
-      if (!res.ok) throw new Error()
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `${res.status}`)
       setQueryAnswer(data.answer)
+    } catch (e) {
+      setQueryError(String(e))
     } finally {
       setQuerying(false)
     }
@@ -761,6 +765,10 @@ export default function VaultNix() {
                   <div className="spinner" />
                   <span>Searching vault · Building context · Reasoning…</span>
                 </div>
+              )}
+
+              {queryError && !querying && (
+                <div className="error-msg">{queryError}</div>
               )}
 
               {queryAnswer && !querying && (
