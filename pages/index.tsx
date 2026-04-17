@@ -355,6 +355,7 @@ export default function VaultNix() {
   const [captureText, setCaptureText] = useState('')
   const [captureProject, setCaptureProject] = useState('general')
   const [captureStatus, setCaptureStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [captureIsIdea, setCaptureIsIdea] = useState(false)
 
   // Query state
   const [queryText, setQueryText] = useState('')
@@ -449,6 +450,8 @@ export default function VaultNix() {
         body: JSON.stringify({ content: captureText, project: captureProject }),
       })
       if (!res.ok) throw new Error()
+      const data = await res.json()
+      setCaptureIsIdea(!!data.isIdea)
       setCaptureStatus('success')
       setCaptureText('')
     } catch {
@@ -710,7 +713,7 @@ export default function VaultNix() {
 
               <textarea
                 className="capture-textarea"
-                placeholder="What happened? What did you decide? What are the open questions?&#10;&#10;This will be filed as a draft audit note in raw/ and compiled on the next run."
+                placeholder="What happened? What did you decide? What are the open questions?&#10;&#10;Start with &quot;idea.&quot; to route directly to raw/general/ideas/ — no compilation, reviewed later."
                 value={captureText}
                 onChange={e => { setCaptureText(e.target.value); setCaptureStatus('idle') }}
               />
@@ -725,7 +728,10 @@ export default function VaultNix() {
 
               {captureStatus === 'success' && (
                 <div className="success-msg">
-                  ✓ Filed to raw/{captureProject}/. Nightly compile will process it.
+                  {captureIsIdea
+                    ? '✓ Idea filed to raw/general/ideas/. Awaiting your review — not queued for compile.'
+                    : `✓ Filed to raw/${captureProject}/. Nightly compile will process it.`
+                  }
                 </div>
               )}
               {captureStatus === 'error' && (
