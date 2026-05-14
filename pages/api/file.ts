@@ -1,6 +1,6 @@
 // pages/api/file.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getFile } from '../../lib/github'
+import { getFile } from '../../lib/vault'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).end()

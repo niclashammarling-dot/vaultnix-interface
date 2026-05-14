@@ -1,5 +1,4 @@
-// lib/github.ts
-// Reads markdown files from the Vaultnix GitHub repo
+import type { VaultFile, VaultTree } from './types'
 
 const GITHUB_API = 'https://api.github.com'
 const OWNER = process.env.GITHUB_OWNER!
@@ -13,24 +12,10 @@ const headers = {
   'X-GitHub-Api-Version': '2022-11-28',
 }
 
-export interface VaultFile {
-  path: string
-  name: string
-  content: string
-  sha: string
-}
-
-export interface VaultTree {
-  path: string
-  type: 'blob' | 'tree'
-  sha: string
-}
-
-// Fetch the full tree of wiki/ directory
 export async function getWikiTree(): Promise<VaultTree[]> {
   const res = await fetch(
     `${GITHUB_API}/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`,
-    { headers, next: { revalidate: 300 } } // cache 5 min
+    { headers, next: { revalidate: 300 } }
   )
   if (!res.ok) throw new Error(`GitHub tree fetch failed: ${res.status}`)
   const data = await res.json()
@@ -39,7 +24,6 @@ export async function getWikiTree(): Promise<VaultTree[]> {
   )
 }
 
-// Fetch a single file by path
 export async function getFile(path: string): Promise<VaultFile> {
   const res = await fetch(
     `${GITHUB_API}/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`,
@@ -51,19 +35,16 @@ export async function getFile(path: string): Promise<VaultFile> {
   return { path, name: data.name, content, sha: data.sha }
 }
 
-// Fetch INDEX.md
 export async function getIndex(): Promise<string> {
   const file = await getFile('wiki/_index/INDEX.md')
   return file.content
 }
 
-// Fetch a MOC by domain
 export async function getMOC(domain: string): Promise<string> {
   const file = await getFile(`wiki/_mocs/${domain}-moc.md`)
   return file.content
 }
 
-// Fetch all MOC files
 export async function getAllMOCs(): Promise<{ domain: string; content: string }[]> {
   const domains = ['apex', 'TCX', 'teaching', 'hiking', 'knowledge-work', 'inspiration']
   const results = await Promise.allSettled(
@@ -76,13 +57,11 @@ export async function getAllMOCs(): Promise<{ domain: string; content: string }[
     .map((r) => r.value)
 }
 
-// Search across all wiki articles
 export async function searchVault(query: string): Promise<{ path: string; excerpt: string }[]> {
   const tree = await getWikiTree()
   const q = query.toLowerCase()
   const results: { path: string; excerpt: string; score: number }[] = []
 
-  // Fetch up to 60 files in parallel batches
   const wikiFiles = tree.filter(f => !f.path.includes('_index'))
   const batches = chunk(wikiFiles, 10)
 
@@ -99,7 +78,6 @@ export async function searchVault(query: string): Promise<{ path: string; excerp
       const end = Math.min(content.length, idx + 160)
       const excerpt = '...' + content.slice(start, end).replace(/\n/g, ' ') + '...'
 
-      // Simple relevance: title match = higher score
       const titleMatch = path.toLowerCase().includes(q) ? 2 : 0
       const occurrences = (lower.match(new RegExp(q, 'g')) || []).length
       results.push({ path, excerpt, score: occurrences + titleMatch })
@@ -112,7 +90,6 @@ export async function searchVault(query: string): Promise<{ path: string; excerp
     .map(({ path, excerpt }) => ({ path, excerpt }))
 }
 
-// Commit a new raw/ note to GitHub
 export async function commitRawNote(
   filename: string,
   content: string,
@@ -139,9 +116,7 @@ export async function commitRawNote(
   }
 }
 
-// Fetch multiple articles for AI context
 export async function getArticlesForQuery(query: string): Promise<string> {
-  // Get INDEX + relevant MOC + top search results
   const [index, searchResults] = await Promise.all([
     getIndex(),
     searchVault(query),
@@ -151,9 +126,10 @@ export async function getArticlesForQuery(query: string): Promise<string> {
     searchResults.slice(0, 5).map(r => getFile(r.path))
   )
 
+  const MAX_ARTICLE_CHARS = 4000
   const articles = articleContents
     .filter((r): r is PromiseFulfilledResult<VaultFile> => r.status === 'fulfilled')
-    .map(r => `### ${r.value.path}\n${r.value.content}`)
+    .map(r => `### ${r.value.path}\n${r.value.content.slice(0, MAX_ARTICLE_CHARS)}`)
     .join('\n\n---\n\n')
 
   return `## INDEX\n${index}\n\n## RELEVANT ARTICLES\n${articles}`

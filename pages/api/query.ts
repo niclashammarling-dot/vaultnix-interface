@@ -1,10 +1,11 @@
 // pages/api/query.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import OpenAI from 'openai'
-import { getArticlesForQuery } from '../../lib/github'
+import { getArticlesForQuery } from '../../lib/vault'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434/v1',
+  apiKey: 'ollama',
 })
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const vaultContext = await getArticlesForQuery(question)
 
     const message = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: process.env.OLLAMA_MODEL ?? 'qwen2.5:14b',
       max_tokens: 1024,
       messages: [
         {

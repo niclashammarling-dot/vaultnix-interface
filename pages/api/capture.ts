@@ -1,6 +1,6 @@
 // pages/api/capture.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { commitRawNote } from '../../lib/github'
+import { commitRawNote } from '../../lib/vault'
 
 const IDEA_PREFIX = /^idea[.:]\s*/i
 
