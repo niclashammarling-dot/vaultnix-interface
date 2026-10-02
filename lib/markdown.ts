@@ -80,7 +80,7 @@ export function domainFromPath(path: string): string {
 export const DOMAINS = [
   { id: 'apex', label: 'Apex', emoji: '📈', desc: 'Trading system' },
   { id: 'TCX', label: 'TCX', emoji: '🏫', desc: 'Teacher AI' },
-  { id: 'teaching', label: 'Teaching', emoji: '📚', desc: 'Dannikeskolan' },
+  { id: 'teaching', label: 'Teaching', emoji: '📚', desc: 'Primary school' },
   { id: 'hiking', label: 'Hiking', emoji: '🌲', desc: 'Alter-native' },
   { id: 'knowledge-work', label: 'Knowledge', emoji: '🧠', desc: 'Vault meta' },
   { id: 'inspiration', label: 'Inspiration', emoji: '✦', desc: 'Visual refs' },

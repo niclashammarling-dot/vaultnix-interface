@@ -23,9 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       messages: [
         {
           role: 'system',
-          content: `You are an agent navigating Niclas's personal knowledge vault (Vaultnix).
+          content: `You are an agent navigating a personal knowledge vault (Vaultnix).
 The vault covers: apex (Python trading system with Gates/Locks/Keys framework),
-TCX (Teacher Cognitive Exoskeleton, React multi-agent), teaching (Dannikeskolan F-6 Borås,
+TCX (Teacher Cognitive Exoskeleton, React multi-agent), teaching (F-6 primary school,
 Åk 4A/5A, Lgr22 + Singapore Math), hiking (Alter-native Hiking, "Walk slowly. Go deep."),
 and knowledge-work (LLM wiki methodology, agent-operated knowledge systems).
 
